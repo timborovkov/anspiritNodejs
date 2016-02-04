@@ -4,12 +4,13 @@ var port = process.env.PORT || 1337;
 
 //database
 var mysql = require('mysql');
-var connection = mysql.createConnection({
+var db = mysql.createConnection({
   host     : 'eu-cdbr-azure-north-d.cloudapp.net',
   user     : 'b2a32c755154bf',
   password : 'c0b4e78d',
   database : 'anspiritMain'
 });
+db.connect();
 
 app.get('/', function (req, res) {
   res.send('Hello World!');
