@@ -1,6 +1,11 @@
 var http = require('http')
 var port = process.env.PORT || 1337;
 http.createServer(function(req, res) {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Hello World\n');
+    var body = [];
+    req.on('data', function(chunk) {
+      body.push(chunk);
+    }).on('end', function() {
+      body = Buffer.concat(body).toString();
+      response.end(body);
+    });
 }).listen(port);
