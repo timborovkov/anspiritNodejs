@@ -14,9 +14,6 @@ var connection = mysql.createConnection({
 app.get('/', function (req, res) {
   res.send('Hello World!');
 });
-app.post('/', function(req, res){
-
-});
 app.get('/login', function (req, res) {
   var login = require('/api/login.js').run();
   if(login){
