@@ -16,8 +16,9 @@ app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
-app.get('/login', function (req, res) {
-  var login = require('/api/login.js');
+app.post('/login', function (req, res) {
+  var login = require('api/login.js');
+  var in = login.run(req);
   if(login != null){
     if(in){
       res.send('Done login');
