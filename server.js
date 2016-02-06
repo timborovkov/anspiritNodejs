@@ -2,6 +2,15 @@ var express = require('express');
 var app = express();
 var port = process.env.PORT || 1337;
 
+app.get('/', function (req, res) {
+  res.send('Hello World!');
+});
+
+app.listen(port, function () {
+  console.log('Example app listening on port ' + port);
+});
+
+/*
 //database
 var mysql = require('mysql');
 var db = mysql.createConnection({
@@ -11,10 +20,6 @@ var db = mysql.createConnection({
   database : 'anspiritMain'
 });
 db.connect();
-
-app.get('/', function (req, res) {
-  res.send('Hello World!');
-});
 
 app.post('/login', function (req, res) {
   var login = require('api/login.js');
@@ -29,7 +34,4 @@ app.post('/login', function (req, res) {
     res.send('Login failed: server error');
   }
 });
-
-app.listen(port, function () {
-  console.log('Example app listening on port ' + port);
-});
+*/
