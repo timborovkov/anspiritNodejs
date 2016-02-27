@@ -15,8 +15,6 @@ var db = mysql.createConnection({
 
 app.use(bodyParser.json());
 app.get('/', function(req, res){
-  res.setHeader('Content-Type', 'text/html');
-  res.setHeader('title', 'Anspirit');
   res.send('<h1>Sorry, you don\'t have access here.</h1><br><br><br>Anspirit Company Official Server');
 });
 
@@ -197,8 +195,8 @@ io.on('connection', function(socket){
   });
 });
 
-http.listen(3000, function(){
-  console.log('listening on *:3000');
+http.listen(process.env.PORT || 3000, function(){
+  console.log('listening...');
 });
 
 //Get hub ip
