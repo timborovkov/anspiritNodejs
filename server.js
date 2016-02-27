@@ -131,19 +131,19 @@ app.get('/newHub', function(req, res){
       if (err) throw err;
       if(rows.length == 0){
         var query =
-        "INSERT INTO `hub_list` (`ip`, `secret`, `HubName`, `latitude`, `longitude`) VALUES ('" + ip + "', " + secret + ", '" + hubName + "', '" + latitude + "', '" + longitude + "')";
+        "INSERT INTO `hub_list` (`ip`, `secret`, `name`, `latitude`, `longitude`) VALUES ('" + ip + "', " + secret + ", '" + hubName + "', " + latitude + ", " + longitude + ")";
         console.log(query);
         db.query(query, function(err, rows, fields) {
           if (err) throw err;
           //Done
           res.send(JSON.stringify({done: true}))
         });
+        db.end();
       }else{
         //Already exist
         res.send(JSON.stringify({done: false, error: 'hub already exist'}));
       }
     });
-    db.end();
   }
 });
 
