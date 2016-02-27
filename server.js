@@ -6,6 +6,8 @@ var mysql = require('mysql');
 var request = require('ajax-request');
 const crypto = require('crypto');
 
+var port = process.env.PORT || 3000;
+
 var db = mysql.createConnection({
   host     : 'eu-cdbr-azure-north-d.cloudapp.net',
   user     : 'b2a32c755154bf',
@@ -202,8 +204,8 @@ io.on('connection', function(socket){
   });
 });
 
-http.listen(process.env.PORT || 3000, function(){
-  console.log('listening...');
+http.listen(port, function(){
+  console.log('listening on ' + port);
 });
 
 //Get hub ip
