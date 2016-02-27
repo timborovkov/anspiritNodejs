@@ -194,11 +194,11 @@ io.on('connection', function(socket){
     console.log('user disconnected');
   });
 });
-
+/*
 http.listen(process.env.PORT || 3000, function(){
   console.log('listening...');
 });
-
+*/
 //Get hub ip
 function hubIP(id, callback){
   db.connect();
