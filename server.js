@@ -15,7 +15,9 @@ var db = mysql.createConnection({
 
 app.use(bodyParser.json());
 app.get('/', function(req, res){
-  res.send('Sorry, you don\'t have access here.\nAnspirit Company Official Server');
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('title', 'Anspirit');
+  res.send('<h1>Sorry, you don\'t have access here.</h1><br><br><br>Anspirit Company Official Server');
 });
 
 //Send task to hub
