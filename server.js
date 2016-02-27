@@ -128,11 +128,11 @@ app.get('/newHub', function(req, res){
       db.query(query, function(err, rows, fields) {
         if (err) throw err;
         //Done
-        res.send(JSON.stringify(['done':true]))
+        res.send(JSON.stringify({done: true}))
       });
     }else{
       //Already exist
-      res.send(JSON.stringify(['done':false, 'error': 'hub already exist']));
+      res.send(JSON.stringify({done: false, error: 'hub already exist'}));
     }
   });
   db.end();
@@ -169,20 +169,20 @@ app.get('/update/hub/:field', function(req, res){
               });
             }else{
               //User not valid
-              res.send(JSON.stringify(['done':false, 'error': 'user not valid']));
+              res.send(JSON.stringify({done: false, error: 'user not valid'}));
             }
           }else{
             //Owner is not user
-            res.send(JSON.stringify(['done':false, 'error': 'owner is not user']));
+            res.send(JSON.stringify({done: false, error: 'owner is not user'}));
           }
         }else{
           //User not found
-          res.send(JSON.stringify(['done':false, 'error': 'user not found']));
+          res.send(JSON.stringify({done: false, error: 'user not found'}));
         }
       });
     }else{
       //No hub found
-      res.send(JSON.stringify(['done':false, 'error': 'hub not found']));
+      res.send(JSON.stringify({done: false, error: 'hub not found'}));
     }
   });
   db.end();
