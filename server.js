@@ -119,23 +119,30 @@ app.get('/newHub', function(req, res){
   var hubName = req.query.hubName;
   var latitude = req.query.latitude;
   var longitude = req.query.longitude;
-  db.connect();
-  db.query("SELECT * FROM `hub_list` WHERE `ip`=" + ip, function(err, rows, fields) {
-    if (err) throw err;
-    if(rows.length == 0){
-      var query =
-      "INSERT INTO `hub_list` (`ip`, `secret`, `HubName`, `latitude`, `longitude`) VALUES ('" + ip + "', '" + secret + "', '" + hubName + "', '" + latitude + "', '" + longitude + "')";
-      db.query(query, function(err, rows, fields) {
-        if (err) throw err;
-        //Done
-        res.send(JSON.stringify({done: true}))
-      });
-    }else{
-      //Already exist
-      res.send(JSON.stringify({done: false, error: 'hub already exist'}));
-    }
-  });
-  db.end();
+  if(secret == null || hubName == null || latitude == null || longitude == null){
+    console.log("No input");
+    //No input from user
+    res.send(JSON.stringify({done: false, error: 'no input data from user'}));
+  }else{
+    db.connect();
+    db.query("SELECT * FROM `hub_list` WHERE `ip`='" + ip + "'", function(err, rows, fields) {
+      if (err) throw err;
+      if(rows.length == 0){
+        var query =
+        "INSERT INTO `hub_list` (`ip`, `secret`, `HubName`, `latitude`, `longitude`) VALUES ('" + ip + "', " + secret + ", '" + hubName + "', '" + latitude + "', '" + longitude + "')";
+        console.log(query);
+        db.query(query, function(err, rows, fields) {
+          if (err) throw err;
+          //Done
+          res.send(JSON.stringify({done: true}))
+        });
+      }else{
+        //Already exist
+        res.send(JSON.stringify({done: false, error: 'hub already exist'}));
+      }
+    });
+    db.end();
+  }
 });
 
 //Update field for hub in database
