@@ -197,6 +197,20 @@ app.get('/update/hub/:field', function(req, res){
   db.end();
 });
 
+app.post('deviceType', function(res, res){
+  res.setHeader('Content-Type', 'application/json');
+  var device = req.body.device;
+  db.connect();
+  db.query("SELECT * FROM `device_list` WHERE `id`=" + device, function(err, rows, fields){
+    if(err) throw err;
+    var type = rows[0].type;
+    var connectionType = rows[0].connectionType;
+    var result = {deviceType: type, connectionType: connectionType};
+    res.send(result);
+  });
+  db.end();
+});
+
 io.on('connection', function(socket){
   console.log('a user connected');
   socket.on('disconnect', function(){
@@ -211,9 +225,9 @@ http.listen(port, function(){
 //Get hub ip
 function hubIP(id, callback){
   db.connect();
-  db.query("SELECT * FROM `hub_list` WHERE `id`="+hub, function(err, rows, fields) {
+  db.query("SELECT * FROM `hub_list` WHERE `id`=" + id, function(err, rows, fields) {
     if (err) throw err;
-    hub = rows[0];
+    var hub = rows[0];
     callback(hub.ip);
   });
   db.end();
