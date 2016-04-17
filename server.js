@@ -200,7 +200,7 @@ app.get('/newDevice', function(req, res){
         //Now insert into database new device
         var query =
         "INSERT INTO `device_list` (`state`, `connectionType`, `name`, `type`, `hubId`) VALUES ('" + state + "', " + connectionType + ", '" + name + "', " + type + ", " + hubId + ")";
-        db.query(query, function(err, rows fields){
+        db.query(query, function(err, rows, fields){
           if (err) throw err;
           //Done
           //TODO: Tell hub to connect new device
