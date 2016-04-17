@@ -27,6 +27,10 @@ app.get('/hub', function(req, res){
   var user = req.query.user;
   var secret = req.query.secret;
   var task = req.query.task;
+  //Task contains {action: action, parameters: parameters}
+  //Task must be converted to standart
+  //on, off, dim, bright, status + device id
+
   if(hubId != null && user != null && secret != null && task != null){
     var responseToSend = {hubId: hubId, user: user};
     hubIP(hubId, function(ip){
@@ -70,7 +74,6 @@ app.get('/user/:id', function (req, res) {
   db.end();
 });
 
-//Get list of all devices for user
 app.get('/devices', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var user = req.query.user;
@@ -113,9 +116,40 @@ app.get('/devices', function(req, res){
    }
 });
 
+app.get('/hubDevices', function(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  var user = req.query.user;
+  var secret = req.query.secret;
+  var hubId = req.query.hub;
+
+  //TODO security check
+  //Validate if user id and secret are valid
+  //Validate if hub is owned by the user
+
+  if(user != null && secret != null && hubId != null){
+      db.connect();
+      db.query("SELECT * FROM `device_list` WHERE `hub`="+hubId, function(err, rows, fields) {
+        if (err) throw err;
+        if(rows != null){
+          res.send(JSON.stringify({error:false, type:"done", request: req.query, devices: rows}));
+        }else{
+          res.send(JSON.stringify({error:true, type:"no hub found"}));
+        }
+      });
+      db.end();
+
+     res.send(JSON.stringify(responseToSend));
+   }else{
+     res.send(JSON.stringify({error: true, type: 'bad request'}));
+   }
+});
+
 //Setup new QHUB on server and database
 app.get('/newHub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify({done: false, error: 'no input data from user'}));
+
+  /*
   var ip = getClientAddress(req);
   var secret = req.query.secret;
   var hubName = req.query.hubName;
@@ -145,6 +179,41 @@ app.get('/newHub', function(req, res){
       }
     });
   }
+  */
+});
+
+//Setup new QHUB on server and database
+app.get('/newDevice', function(req, res){
+  res.setHeader('Content-Type', 'application/json');
+  var hubSecret = req.query.hubSecret;
+  var hubId = req.query.hubId;
+  var type = req.query.type;
+  var name = req.query.name;
+  var connectionType = req.query.connectionType;
+  var state = "off";
+  if(type != null && hubId != null && connectionType != null && hubSecret != null && name != null){
+    db.connect();
+    db.query("SELECT * FROM `hub_list` WHERE `id`='" + hubId + "'", function(err, rows, fields) {
+      if (err) throw err;
+      if(rows[0].secret == hubSecret){
+        //Authorized
+        //Now insert into database new device
+        var query =
+        "INSERT INTO `device_list` (`state`, `connectionType`, `name`, `type`, `hubId`) VALUES ('" + state + "', " + connectionType + ", '" + name + "', " + type + ", " + hubId + ")";
+        db.query(query, function(err, rows fields){
+          if (err) throw err;
+          //Done
+          //TODO: Tell hub to connect new device
+        });
+      }else{
+        //Wrong hub data
+        res.send(JSON.stringify({done: false, error: 'wrong hub data'}));
+      }
+    });
+  }else{
+    //No input data
+    res.send(JSON.stringify({done: false, error: 'missing input data'}));
+  }
 });
 
 //Update field for hub in database
@@ -157,15 +226,17 @@ app.get('/update/hub/:field', function(req, res){
   var password = req.query.password;
   password = crypto.createHash('md5').update(password).digest('hex');
 
+  //TODO: check for empty fields
+
   db.connect();
   db.query("SELECT * FROM `hub_list` WHERE `id`=" + hub, function(err, rows, fields) {
     if (err) throw err;
-    if(rows.length != 0){
+    if(rows != null){
       //Hub found
       //Get owner of hub
-      var owner = rows[0];
+      var owner = rows[0].ownerId;
       db.query("SELECT * FROM `users` WHERE `id`=" + owner, function(err, userRows, fields) {
-        if(rows.length != 0){
+        if(rows != null){
           //Owner found
           owner = userRows[0];
           //Validate user
@@ -209,6 +280,62 @@ app.post('deviceType', function(res, res){
     res.send(result);
   });
   db.end();
+});
+
+//TODO Pair QHub with existing user account, using hub secret token and user login data
+app.post('/hub2user', function(req, res){
+  res.setHeader('Content-Type', 'application/json');
+  //Get requested variables
+  var hubToken = req.body.hubToken;
+  var userId = req.body.userId;
+  var userPass = req.body.password;
+
+  //check if variables are not null
+  if(hubToken != null && userId != null && userPass != null){
+    //Get md5 hash from password
+    userPass = crypto.createHash('md5').update(userPass).digest('hex');
+
+    //Get user from database
+    db.connect();
+    db.query("SELECT * FROM `users` WHERE `id`=" + userId, function(err, rows, fields){
+      if(err){
+        //Throw an error
+        res.send(JSON.stringify({"erorr": true, "type": "failed to contact DB"}))
+      };
+      //Check if password is valid
+      if(rows[0].password == userPass){
+        //Password is correct
+        //User valid
+        //Now must validate hubToken
+        db.query("SELECT * FROM `hub_list` WHERE `secret`=" + hubToken, function(err, rows, fields){
+          //Check if hub with hubToken exist
+          if(rows[0] != null){
+            //Hub exists
+            //Update hub ownerId field
+            //Set it to user`s id
+            db.query("UPDATE `hub_list` SET `ownerId`='" + userId + "' WHERE `id`='" + rows[0].id + "'", function(err, userRows, fields) {
+              //Owner updated
+              //return success
+              res.send(JSON.stringify({"erorr": false, "type": "success"}))
+            });
+          }else{
+            //No such hub
+            //throw an error
+            res.send(JSON.stringify({"erorr": true, "type": "Wrong hub token"}))
+          }
+        });
+      }else{
+        //User not valid
+        //throw an error
+        res.send(JSON.stringify({"erorr": true, "type": "user login data is not valid"}))
+      }
+    });
+    db.end();
+  }else{
+    //Invalid request
+    //throw an error
+    res.send(JSON.stringify({"erorr": true, "type": "invalid request"}))
+  }
 });
 
 io.on('connection', function(socket){
