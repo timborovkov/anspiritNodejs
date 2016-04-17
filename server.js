@@ -147,9 +147,7 @@ app.get('/hubDevices', function(req, res) {
 //Setup new QHUB on server and database
 app.get('/newHub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify({done: false, error: 'no input data from user'}));
 
-  /*
   var ip = getClientAddress(req);
   var secret = req.query.secret;
   var hubName = req.query.hubName;
@@ -179,7 +177,6 @@ app.get('/newHub', function(req, res){
       }
     });
   }
-  */
 });
 
 //Setup new QHUB on server and database
