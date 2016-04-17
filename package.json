@@ -19,6 +19,7 @@
   "dependencies": {
     "ajax-request": "^1.2.1",
     "express": "^4.10.2",
-    "socket.io": "^1.4.5"
+    "socket.io": "^1.4.5",
+    "crypto": "0.0.3"
   }
 }

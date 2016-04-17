@@ -63,7 +63,7 @@ app.get('/user/:id', function (req, res) {
   db.connect();
   db.query("SELECT * FROM `users` WHERE `id`="+userId+" AND `password`='"+password+"'", function(err, rows, fields) {
     if (err) throw err;
-    if(rows[0] != null){
+    if(rows[0] !== null){
       res.send(rows[0]);
       console.log('Request from ' + rows[0].fullname);
     }else{
