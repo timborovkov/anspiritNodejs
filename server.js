@@ -27,12 +27,13 @@ app.get('/hub', function(req, res){
   var user = req.query.user;
   var secret = req.query.secret;
   var task = req.query.task;
+  //TODO
   //Task contains {action: action, parameters: parameters}
-  //Task must be converted to standart
-  //on, off, dim, bright, status + device id
+  //Task must be converted to standart of Api.ai
 
   if(hubId != null && user != null && secret != null && task != null){
     var responseToSend = {hubId: hubId, user: user};
+    /*
     hubIP(hubId, function(ip){
       request({
           method: "post",
@@ -47,6 +48,9 @@ app.get('/hub', function(req, res){
           }
        });
      });
+    */
+      //TODO
+      //add new task to database
      res.send(JSON.stringify(responseToSend));
    }else{
      console.log("Bad req");
@@ -274,6 +278,36 @@ app.post('deviceType', function(res, res){
     var type = rows[0].type;
     var connectionType = rows[0].connectionType;
     var result = {deviceType: type, connectionType: connectionType};
+    res.send(result);
+  });
+  db.end();
+});
+
+// Database:
+// TABLE 'hub_tasks'
+// COLUMN 'task' = {action, parameters};
+// COLUMN 'hub' = INT
+// COLUMN 'done' = true/false
+app.get('tasksForHub', function(res, res){
+  res.setHeader('Content-Type', 'application/json');
+  var hubId = req.query.hub;
+  var result = {tasks: null, status: "done"};
+  db.connect();
+  db.query("SELECT * FROM `hub_tasks` WHERE `hub`=" + hubId, function(err, rows, fields){
+    if(err){
+      result.status = "error: " + err;
+    }else{
+      var taskActions = {};
+      var taskIds = {};
+      for (var i = 0; i < rows.length; i++) {//TODO
+        var row = rows[i];
+        if(row.done === false){
+          taskActions += row.taskAction;
+        }
+      }
+      result.taskActions = taskActions;
+      result.taskIds = taskIds;
+    }
     res.send(result);
   });
   db.end();
