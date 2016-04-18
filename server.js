@@ -222,7 +222,7 @@ app.get('/newDevice', function(req, res){
 // COLUMN 'task' = {action, parameters};
 // COLUMN 'hub' = INT
 // COLUMN 'done' = true/false
-app.get('/tasksForHub', function(res, res){
+app.get('/tasksForHub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var hubId = req.query.hub;
   var result = {tasks: null, status: "done"};
