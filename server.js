@@ -239,8 +239,8 @@ app.get('/tasksForHub', function(req, res){
           taskActions += row.taskAction;
         }
       }
-      result.taskActions = taskActions;
-      result.taskIds = taskIds;
+      result.tasks.taskActions = taskActions;
+      result.tasks.taskIds = taskIds;
     }
     res.send(result);
   });
