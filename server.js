@@ -225,7 +225,7 @@ app.get('/newDevice', function(req, res){
 app.get('/tasksForHub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var hubId = req.query.hub;
-  var result = {tasks: null, status: "done"};
+  var result = {tasks: {}, status: "done"};
   db.connect();
   db.query("SELECT * FROM `hub_tasks` WHERE `hub`=" + hubId, function(err, rows, fields){
     if(err){
