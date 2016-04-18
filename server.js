@@ -222,7 +222,7 @@ app.get('/newDevice', function(req, res){
 // COLUMN 'task' = {action, parameters};
 // COLUMN 'hub' = INT
 // COLUMN 'done' = true/false
-app.get('tasksForHub', function(res, res){
+app.get('/tasksForHub', function(res, res){
   res.setHeader('Content-Type', 'application/json');
   var hubId = req.query.hub;
   var result = {tasks: null, status: "done"};
@@ -245,10 +245,6 @@ app.get('tasksForHub', function(res, res){
     res.send(result);
   });
   db.end();
-});
-
-app.get('test1', function(res, req){
-  res.send("done");
 });
 
 //Update field for hub in database
