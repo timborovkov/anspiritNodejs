@@ -20,44 +20,6 @@ app.get('/', function(req, res){
   res.send('<h1>Sorry, you don\'t have access here.</h1><br><br><br>Anspirit Company Official Server');
 });
 
-//Send task to hub
-app.get('/hub', function(req, res){
-  res.setHeader('Content-Type', 'application/json');
-  var hubId = req.query.hubId;
-  var user = req.query.user;
-  var secret = req.query.secret;
-  var task = req.query.task;
-  //TODO
-  //Task contains {action: action, parameters: parameters}
-  //Task must be converted to standart of Api.ai
-
-  if(hubId != null && user != null && secret != null && task != null){
-    var responseToSend = {hubId: hubId, user: user};
-    /*
-    hubIP(hubId, function(ip){
-      request({
-          method: "post",
-          url: 'http://'+ ip +':8080/hub',
-          data: {'user': user, 'secret': secret, 'task': task}
-        }, function(err, res, body){
-          if(err){
-            console.error(err);
-          }else{
-            console.log("Sent data to hub with anwser: ");
-            console.log(body);
-          }
-       });
-     });
-    */
-      //TODO
-      //add new task to database
-     res.send(JSON.stringify(responseToSend));
-   }else{
-     console.log("Bad req");
-     res.send(JSON.stringify({error: true, type: 'bad request'}));
-   }
-});
-
 //Get secret data for user
 app.get('/user/:id', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
@@ -158,14 +120,14 @@ app.get('/newHub', function(req, res){
   var latitude = req.query.latitude;
   var longitude = req.query.longitude;
   if(secret == null || hubName == null || latitude == null || longitude == null){
-    console.log("No input");
     //No input from user
     res.send(JSON.stringify({done: false, error: 'no input data from user'}));
   }else{
     db.connect();
     db.query("SELECT * FROM `hub_list` WHERE `ip`='" + ip + "'", function(err, rows, fields) {
       if (err) throw err;
-      if(rows.length == 0){
+      console.log(rows);
+      if(rows.length === 0){
         var query =
         "INSERT INTO `hub_list` (`ip`, `secret`, `name`, `latitude`, `longitude`) VALUES ('" + ip + "', " + secret + ", '" + hubName + "', " + latitude + ", " + longitude + ")";
         console.log(query);
@@ -177,7 +139,7 @@ app.get('/newHub', function(req, res){
         db.end();
       }else{
         //Already exist
-        res.send(JSON.stringify({done: false, error: 'hub already exist'}));
+        res.send(JSON.stringify({done: false, error: 'Hub already exist'}));
       }
     });
   }
@@ -245,6 +207,44 @@ app.get('/tasksForHub', function(req, res){
     res.send(result);
   });
   db.end();
+});
+
+//Send task to hub
+app.get('/hub', function(req, res){
+  res.setHeader('Content-Type', 'application/json');
+  var hubId = req.query.hubId;
+  var user = req.query.user;
+  var secret = req.query.secret;
+  var task = req.query.task;
+  //TODO
+  //Task contains {action: action, parameters: parameters}
+  //Task must be converted to standart of Api.ai
+
+  if(hubId != null && user != null && secret != null && task != null){
+    var responseToSend = {hubId: hubId, user: user};
+    /*
+    hubIP(hubId, function(ip){
+      request({
+          method: "post",
+          url: 'http://'+ ip +':8080/hub',
+          data: {'user': user, 'secret': secret, 'task': task}
+        }, function(err, res, body){
+          if(err){
+            console.error(err);
+          }else{
+            console.log("Sent data to hub with anwser: ");
+            console.log(body);
+          }
+       });
+     });
+    */
+      //TODO
+      //add new task to database
+     res.send(JSON.stringify(responseToSend));
+   }else{
+     console.log("Bad req");
+     res.send(JSON.stringify({error: true, type: 'bad request'}));
+   }
 });
 
 //Update field for hub in database
