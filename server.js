@@ -369,6 +369,35 @@ app.post('/hub2user', function(req, res){
   }
 });
 
+//Hub will ask if it is paired or not
+app.post('/hub/isPaired', function(req, res){
+  //Set headers
+  res.setHeader('Content-Type', 'application/json');
+  //Get request
+  var hubSecret = req.body.token;
+  //Check if request is valid
+  if(hubSecret !== null){
+    //valid request
+    //Connect to database
+    db.connect();
+    //Ask hub data for hub with this token
+    db.query("SELECT * FROM `hub_list` WHERE `secret`=" + hubSecret, function(err, rows, fields){
+      if(err === null){
+        var connected = false;
+        if(rows.ownerId !== null){
+          connected = true;
+        }
+        res.send({error: false, paired: connected});
+      }else{
+        res.send({error: true, errorType: "failed to access database"});
+      }
+    });
+  }else{
+    //not valid request
+    res.send({error: true, errorType: "invalid request"});
+  }
+});
+
 io.on('connection', function(socket){
   console.log('a user connected');
   socket.on('disconnect', function(){
