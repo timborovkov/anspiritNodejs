@@ -391,6 +391,7 @@ app.get('/hub/isPaired', function(req, res){
           res.send({error: true, errorType: "Hub with token " + hubSecret + ", was not found"});
         }
       }else{
+        console.error(err);
         res.send({error: true, errorType: "failed to send query: " + "SELECT * FROM `hub_list` WHERE `secret`=" + hubSecret});
       }
     });
