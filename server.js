@@ -15,6 +15,8 @@ var db = mysql.createConnection({
   database : 'anspiritMain'
 });
 
+db.connect();
+
 app.use(bodyParser.json());
 app.get('/', function(req, res){
   res.send('<h1>Sorry, you don\'t have access here.</h1><br><br><br>Anspirit Company Official Server');
@@ -26,7 +28,6 @@ app.get('/user/:id', function (req, res) {
   var userId = req.params.id;
   var password = req.query.password;
   password = crypto.createHash('md5').update(password).digest('hex');
-  db.connect();
   db.query("SELECT * FROM `users` WHERE `id`="+userId+" AND `password`='"+password+"'", function(err, rows, fields) {
     if (err) throw err;
     if(rows[0] !== null){
@@ -37,7 +38,6 @@ app.get('/user/:id', function (req, res) {
       console.error("No access for used: " + userId + ", with password: " + password);
     }
   });
-  db.end();
 });
 
 app.get('/devices', function(req, res){
@@ -47,7 +47,6 @@ app.get('/devices', function(req, res){
   var device = req.query.task;
   var state = req.query.state;
   if(user != null && secret != null && device != null && state != null){
-      db.connect();
       db.query("SELECT * FROM `device_list` WHERE `id`="+device, function(err, rows, fields) {
         if (err) throw err;
         if(rows[0] != null){
@@ -74,7 +73,6 @@ app.get('/devices', function(req, res){
           res.send(JSON.stringify({error:true, type:"no device found"}));
         }
       });
-      db.end();
 
      res.send(JSON.stringify(responseToSend));
    }else{
@@ -93,7 +91,6 @@ app.get('/hubDevices', function(req, res) {
   //Validate if hub is owned by the user
 
   if(user != null && secret != null && hubId != null){
-      db.connect();
       db.query("SELECT * FROM `device_list` WHERE `hub`="+hubId, function(err, rows, fields) {
         if (err) throw err;
         if(rows != null){
@@ -102,7 +99,6 @@ app.get('/hubDevices', function(req, res) {
           res.send(JSON.stringify({error:true, type:"no hub found"}));
         }
       });
-      db.end();
 
      res.send(JSON.stringify(responseToSend));
    }else{
@@ -123,7 +119,6 @@ app.get('/newHub', function(req, res){
     //No input from user
     res.send(JSON.stringify({done: false, error: 'no input data from user'}));
   }else{
-    db.connect();
     db.query("SELECT * FROM `hub_list` WHERE `ip`='" + ip + "'", function(err, rows, fields) {
       if (err) throw err;
       console.log(rows);
@@ -136,7 +131,6 @@ app.get('/newHub', function(req, res){
           //Done
           res.send(JSON.stringify({done: true}))
         });
-        db.end();
       }else{
         //Already exist
         res.send(JSON.stringify({done: false, error: 'Hub already exist'}));
@@ -155,7 +149,6 @@ app.get('/newDevice', function(req, res){
   var connectionType = req.query.connectionType;
   var state = "off";
   if(type != null && hubId != null && connectionType != null && hubSecret != null && name != null){
-    db.connect();
     db.query("SELECT * FROM `hub_list` WHERE `id`='" + hubId + "'", function(err, rows, fields) {
       if (err) throw err;
       if(rows[0].secret == hubSecret){
@@ -188,7 +181,6 @@ app.get('/tasksForHub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var hubId = req.query.hub;
   var result = {tasks: {}, status: "done"};
-  db.connect();
   db.query("SELECT * FROM `hub_tasks` WHERE `hub`=" + hubId, function(err, rows, fields){
     if(err){
       result.status = "error: " + err;
@@ -206,7 +198,6 @@ app.get('/tasksForHub', function(req, res){
     }
     res.send(result);
   });
-  db.end();
 });
 
 //Send task to hub
@@ -259,7 +250,6 @@ app.get('/update/hub/:field', function(req, res){
 
   //TODO: check for empty fields
 
-  db.connect();
   db.query("SELECT * FROM `hub_list` WHERE `id`=" + hub, function(err, rows, fields) {
     if (err) throw err;
     if(rows != null){
@@ -296,13 +286,11 @@ app.get('/update/hub/:field', function(req, res){
       res.send(JSON.stringify({done: false, error: 'hub not found'}));
     }
   });
-  db.end();
 });
 
 app.post('deviceType', function(res, res){
   res.setHeader('Content-Type', 'application/json');
   var device = req.body.device;
-  db.connect();
   db.query("SELECT * FROM `device_list` WHERE `id`=" + device, function(err, rows, fields){
     if(err) throw err;
     var type = rows[0].type;
@@ -310,7 +298,6 @@ app.post('deviceType', function(res, res){
     var result = {deviceType: type, connectionType: connectionType};
     res.send(result);
   });
-  db.end();
 });
 
 //TODO Pair QHub with existing user account, using hub secret token and user login data
@@ -327,7 +314,6 @@ app.post('/hub2user', function(req, res){
     userPass = crypto.createHash('md5').update(userPass).digest('hex');
 
     //Get user from database
-    db.connect();
     db.query("SELECT * FROM `users` WHERE `id`=" + userId, function(err, rows, fields){
       if(err){
         //Throw an error
@@ -361,7 +347,6 @@ app.post('/hub2user', function(req, res){
         res.send(JSON.stringify({"erorr": true, "type": "user login data is not valid"}))
       }
     });
-    db.end();
   }else{
     //Invalid request
     //throw an error
@@ -378,8 +363,6 @@ app.post('/hub/isPaired', function(req, res){
   //Check if request is valid
   if(hubSecret !== null){
     //valid request
-    //Connect to database
-    db.connect();
     //Ask hub data for hub with this token
     db.query("SELECT * FROM `hub_list` WHERE `secret`=" + hubSecret, function(err, rows, fields){
       if(err === null){
@@ -392,7 +375,6 @@ app.post('/hub/isPaired', function(req, res){
         res.send({error: true, errorType: "failed to access database"});
       }
     });
-    db.end();
   }else{
     //not valid request
     res.send({error: true, errorType: "invalid request"});
@@ -412,13 +394,11 @@ http.listen(port, function(){
 
 //Get hub ip
 function hubIP(id, callback){
-  db.connect();
   db.query("SELECT * FROM `hub_list` WHERE `id`=" + id, function(err, rows, fields) {
     if (err) throw err;
     var hub = rows[0];
     callback(hub.ip);
   });
-  db.end();
 }
 // Get client IP address from request object
 function getClientAddress(req) {
