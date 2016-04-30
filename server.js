@@ -4,10 +4,9 @@ var io = require('socket.io')(http);
 var bodyParser = require('body-parser')
 var mysql = require('mysql');
 var request = require('ajax-request');
-const crypto = require('crypto');
+var crypto = require('crypto');
 
 var port = process.env.PORT || 3000;
-var port = 3000;
 
 var db = mysql.createConnection({
   host     : 'eu-cdbr-azure-north-d.cloudapp.net',
