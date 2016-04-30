@@ -369,6 +369,7 @@ app.post('/hub2user', function(req, res){
   }
 });
 
+/*
 //Hub will ask if it is paired or not
 app.post('/hub/isPaired', function(req, res){
   //Set headers
@@ -397,6 +398,7 @@ app.post('/hub/isPaired', function(req, res){
     res.send({error: true, errorType: "invalid request"});
   }
 });
+*/
 
 io.on('connection', function(socket){
   console.log('a user connected');
