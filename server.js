@@ -392,6 +392,7 @@ app.post('/hub/isPaired', function(req, res){
         res.send({error: true, errorType: "failed to access database"});
       }
     });
+    db.end();
   }else{
     //not valid request
     res.send({error: true, errorType: "invalid request"});
