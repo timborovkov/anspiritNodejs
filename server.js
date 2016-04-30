@@ -26,7 +26,6 @@ app.get('/user/:id', function (req, res) {
   var userId = req.params.id;
   var password = req.query.password;
   password = crypto.createHash('md5').update(password).digest('hex');
-  db.connect();
   db.query("SELECT * FROM `users` WHERE `id`="+userId+" AND `password`='"+password+"'", function(err, rows, fields) {
     if (err) throw err;
     if(rows[0] !== null){
@@ -46,7 +45,6 @@ app.get('/devices', function(req, res){
   var device = req.query.task;
   var state = req.query.state;
   if(user != null && secret != null && device != null && state != null){
-      db.connect();
       db.query("SELECT * FROM `device_list` WHERE `id`="+device, function(err, rows, fields) {
         if (err) throw err;
         if(rows[0] != null){
@@ -91,7 +89,6 @@ app.get('/hubDevices', function(req, res) {
   //Validate if hub is owned by the user
 
   if(user != null && secret != null && hubId != null){
-      db.connect();
       db.query("SELECT * FROM `device_list` WHERE `hub`="+hubId, function(err, rows, fields) {
         if (err) throw err;
         if(rows != null){
@@ -120,7 +117,6 @@ app.get('/newHub', function(req, res){
     //No input from user
     res.send(JSON.stringify({done: false, error: 'no input data from user'}));
   }else{
-    db.connect();
     db.query("SELECT * FROM `hub_list` WHERE `ip`='" + ip + "'", function(err, rows, fields) {
       if (err) throw err;
       console.log(rows);
@@ -151,7 +147,6 @@ app.get('/newDevice', function(req, res){
   var connectionType = req.query.connectionType;
   var state = "off";
   if(type != null && hubId != null && connectionType != null && hubSecret != null && name != null){
-    db.connect();
     db.query("SELECT * FROM `hub_list` WHERE `id`='" + hubId + "'", function(err, rows, fields) {
       if (err) throw err;
       if(rows[0].secret == hubSecret){
@@ -184,7 +179,6 @@ app.get('/tasksForHub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var hubId = req.query.hub;
   var result = {tasks: {}, status: "done"};
-  db.connect();
   db.query("SELECT * FROM `hub_tasks` WHERE `hub`=" + hubId, function(err, rows, fields){
     if(err){
       result.status = "error: " + err;
@@ -253,7 +247,6 @@ app.get('/update/hub/:field', function(req, res){
   password = crypto.createHash('md5').update(password).digest('hex');
 
   //TODO: check for empty fields
-  db.connect();
   db.query("SELECT * FROM `hub_list` WHERE `id`=" + hub, function(err, rows, fields) {
     if (err) throw err;
     if(rows != null){
@@ -295,7 +288,6 @@ app.get('/update/hub/:field', function(req, res){
 app.post('deviceType', function(res, res){
   res.setHeader('Content-Type', 'application/json');
   var device = req.body.device;
-  db.connect();
   db.query("SELECT * FROM `device_list` WHERE `id`=" + device, function(err, rows, fields){
     if(err) throw err;
     var type = rows[0].type;
@@ -317,7 +309,6 @@ app.post('/hub2user', function(req, res){
   if(hubToken != null && userId != null && userPass != null){
     //Get md5 hash from password
     userPass = crypto.createHash('md5').update(userPass).digest('hex');
-    db.connect();
     //Get user from database
     db.query("SELECT * FROM `users` WHERE `id`=" + userId, function(err, rows, fields){
       if(err){
@@ -369,7 +360,6 @@ app.post('/hub/isPaired', function(req, res){
   if(hubSecret !== null){
     //valid request
     //Ask hub data for hub with this token
-    db.connect();
     db.query("SELECT * FROM `hub_list` WHERE `secret`=" + hubSecret, function(err, rows, fields){
       if(err === null){
         var connected = false;
@@ -395,12 +385,12 @@ io.on('connection', function(socket){
 });
 
 http.listen(port, function(){
+  db.connect();
   console.log('listening on ' + port);
 });
 
 //Get hub ip
 function hubIP(id, callback){
-  db.connect();
   db.query("SELECT * FROM `hub_list` WHERE `id`=" + id, function(err, rows, fields) {
     if (err) throw err;
     var hub = rows[0];
