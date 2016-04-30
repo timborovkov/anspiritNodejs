@@ -8,16 +8,9 @@ const crypto = require('crypto');
 
 var port = process.env.PORT || 3000;
 
-var db = mysql.createConnection({
-  host     : 'eu-cdbr-azure-north-d.cloudapp.net',
-  user     : 'b2a32c755154bf',
-  password : 'c0b4e78d',
-  database : 'anspiritMain'
-});
-
 app.use(bodyParser.json());
 app.get('/', function(req, res){
-  res.send('<h1>Sorry, you don\'t have access here.</h1><br><br><br>Anspirit Company Official Server');
+  res.send('<h1>Sorry, you don\'t have access here.</h1><br><br><br>Anspirit Company Official Server 111');
 });
 
 //Get secret data for user
@@ -26,6 +19,15 @@ app.get('/user/:id', function (req, res) {
   var userId = req.params.id;
   var password = req.query.password;
   password = crypto.createHash('md5').update(password).digest('hex');
+  //Connect to database
+  var db = mysql.createConnection({
+    host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+    user     : 'b2a32c755154bf',
+    password : 'c0b4e78d',
+    database : 'anspiritMain'
+  });
+  db.connect();
+  //Execute query
   db.query("SELECT * FROM `users` WHERE `id`="+userId+" AND `password`='"+password+"'", function(err, rows, fields) {
     if (err) throw err;
     if(rows[0] !== null){
@@ -36,6 +38,8 @@ app.get('/user/:id', function (req, res) {
       console.error("No access for used: " + userId + ", with password: " + password);
     }
   });
+  //End connection to database
+  db.end();
 });
 
 app.get('/devices', function(req, res){
@@ -45,6 +49,15 @@ app.get('/devices', function(req, res){
   var device = req.query.task;
   var state = req.query.state;
   if(user != null && secret != null && device != null && state != null){
+      //Connect to database
+      var db = mysql.createConnection({
+        host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+        user     : 'b2a32c755154bf',
+        password : 'c0b4e78d',
+        database : 'anspiritMain'
+      });
+      db.connect();
+      //Execute query
       db.query("SELECT * FROM `device_list` WHERE `id`="+device, function(err, rows, fields) {
         if (err) throw err;
         if(rows[0] != null){
@@ -71,6 +84,8 @@ app.get('/devices', function(req, res){
           res.send(JSON.stringify({error:true, type:"no device found"}));
         }
       });
+      //End connection to database
+      db.end();
 
      res.send(JSON.stringify(responseToSend));
    }else{
@@ -89,6 +104,15 @@ app.get('/hubDevices', function(req, res) {
   //Validate if hub is owned by the user
 
   if(user != null && secret != null && hubId != null){
+      //Connect to database
+      var db = mysql.createConnection({
+        host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+        user     : 'b2a32c755154bf',
+        password : 'c0b4e78d',
+        database : 'anspiritMain'
+      });
+      db.connect();
+      //Execute query
       db.query("SELECT * FROM `device_list` WHERE `hub`="+hubId, function(err, rows, fields) {
         if (err) throw err;
         if(rows != null){
@@ -97,6 +121,8 @@ app.get('/hubDevices', function(req, res) {
           res.send(JSON.stringify({error:true, type:"no hub found"}));
         }
       });
+      //End connection to database
+      db.end();
 
      res.send(JSON.stringify(responseToSend));
    }else{
@@ -117,6 +143,15 @@ app.get('/newHub', function(req, res){
     //No input from user
     res.send(JSON.stringify({done: false, error: 'no input data from user'}));
   }else{
+    //Connect to database
+    var db = mysql.createConnection({
+      host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+      user     : 'b2a32c755154bf',
+      password : 'c0b4e78d',
+      database : 'anspiritMain'
+    });
+    db.connect();
+    //Execute query
     db.query("SELECT * FROM `hub_list` WHERE `ip`='" + ip + "'", function(err, rows, fields) {
       if (err) throw err;
       console.log(rows);
@@ -134,6 +169,8 @@ app.get('/newHub', function(req, res){
         res.send(JSON.stringify({done: false, error: 'Hub already exist'}));
       }
     });
+    //End connection to database
+    db.end();
   }
 });
 
@@ -147,6 +184,15 @@ app.get('/newDevice', function(req, res){
   var connectionType = req.query.connectionType;
   var state = "off";
   if(type != null && hubId != null && connectionType != null && hubSecret != null && name != null){
+    //Connect to database
+    var db = mysql.createConnection({
+      host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+      user     : 'b2a32c755154bf',
+      password : 'c0b4e78d',
+      database : 'anspiritMain'
+    });
+    db.connect();
+    //Execute query
     db.query("SELECT * FROM `hub_list` WHERE `id`='" + hubId + "'", function(err, rows, fields) {
       if (err) throw err;
       if(rows[0].secret == hubSecret){
@@ -164,6 +210,8 @@ app.get('/newDevice', function(req, res){
         res.send(JSON.stringify({done: false, error: 'wrong hub data'}));
       }
     });
+    //End connection to database
+    db.end();
   }else{
     //No input data
     res.send(JSON.stringify({done: false, error: 'missing input data'}));
@@ -179,6 +227,15 @@ app.get('/tasksForHub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var hubId = req.query.hub;
   var result = {tasks: {}, status: "done"};
+  //Connect to database
+  var db = mysql.createConnection({
+    host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+    user     : 'b2a32c755154bf',
+    password : 'c0b4e78d',
+    database : 'anspiritMain'
+  });
+  db.connect();
+  //Execute query
   db.query("SELECT * FROM `hub_tasks` WHERE `hub`=" + hubId, function(err, rows, fields){
     if(err){
       result.status = "error: " + err;
@@ -196,6 +253,8 @@ app.get('/tasksForHub', function(req, res){
     }
     res.send(result);
   });
+  //End connection to database
+  db.end();
 });
 
 //Send task to hub
@@ -245,8 +304,17 @@ app.get('/update/hub/:field', function(req, res){
   var user = req.query.hub;
   var password = req.query.password;
   password = crypto.createHash('md5').update(password).digest('hex');
-
   //TODO: check for empty fields
+
+  //Connect to database
+  var db = mysql.createConnection({
+    host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+    user     : 'b2a32c755154bf',
+    password : 'c0b4e78d',
+    database : 'anspiritMain'
+  });
+  db.connect();
+  //Execute query
   db.query("SELECT * FROM `hub_list` WHERE `id`=" + hub, function(err, rows, fields) {
     if (err) throw err;
     if(rows != null){
@@ -278,6 +346,8 @@ app.get('/update/hub/:field', function(req, res){
           res.send(JSON.stringify({done: false, error: 'user not found'}));
         }
       });
+      //End connection to database
+      db.end();
     }else{
       //No hub found
       res.send(JSON.stringify({done: false, error: 'hub not found'}));
@@ -288,6 +358,15 @@ app.get('/update/hub/:field', function(req, res){
 app.post('deviceType', function(res, res){
   res.setHeader('Content-Type', 'application/json');
   var device = req.body.device;
+  //Connect to database
+  var db = mysql.createConnection({
+    host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+    user     : 'b2a32c755154bf',
+    password : 'c0b4e78d',
+    database : 'anspiritMain'
+  });
+  db.connect();
+  //Execute query
   db.query("SELECT * FROM `device_list` WHERE `id`=" + device, function(err, rows, fields){
     if(err) throw err;
     var type = rows[0].type;
@@ -295,6 +374,8 @@ app.post('deviceType', function(res, res){
     var result = {deviceType: type, connectionType: connectionType};
     res.send(result);
   });
+  //End connection to database
+  db.end();
 });
 
 //TODO Pair QHub with existing user account, using hub secret token and user login data
@@ -310,6 +391,15 @@ app.post('/hub2user', function(req, res){
     //Get md5 hash from password
     userPass = crypto.createHash('md5').update(userPass).digest('hex');
     //Get user from database
+    //Connect to database
+    var db = mysql.createConnection({
+      host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+      user     : 'b2a32c755154bf',
+      password : 'c0b4e78d',
+      database : 'anspiritMain'
+    });
+    db.connect();
+    //Execute query
     db.query("SELECT * FROM `users` WHERE `id`=" + userId, function(err, rows, fields){
       if(err){
         //Throw an error
@@ -343,6 +433,7 @@ app.post('/hub2user', function(req, res){
         res.send(JSON.stringify({"erorr": true, "type": "user login data is not valid"}))
       }
     });
+    db.end();
   }else{
     //Invalid request
     //throw an error
@@ -360,6 +451,15 @@ app.post('/hub/isPaired', function(req, res){
   if(hubSecret !== null){
     //valid request
     //Ask hub data for hub with this token
+    //Connect to database
+    var db = mysql.createConnection({
+      host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+      user     : 'b2a32c755154bf',
+      password : 'c0b4e78d',
+      database : 'anspiritMain'
+    });
+    db.connect();
+    //Execute query
     db.query("SELECT * FROM `hub_list` WHERE `secret`=" + hubSecret, function(err, rows, fields){
       if(err === null){
         var connected = false;
@@ -371,6 +471,7 @@ app.post('/hub/isPaired', function(req, res){
         res.send({error: true, errorType: "failed to access database"});
       }
     });
+    db.end();
   }else{
     //not valid request
     res.send({error: true, errorType: "invalid request"});
@@ -385,17 +486,26 @@ io.on('connection', function(socket){
 });
 
 http.listen(port, function(){
-  db.connect();
   console.log('listening on ' + port);
 });
 
 //Get hub ip
 function hubIP(id, callback){
+  //Connect to database
+  var db = mysql.createConnection({
+    host     : 'eu-cdbr-azure-north-d.cloudapp.net',
+    user     : 'b2a32c755154bf',
+    password : 'c0b4e78d',
+    database : 'anspiritMain'
+  });
+  db.connect();
+  //Execute query
   db.query("SELECT * FROM `hub_list` WHERE `id`=" + id, function(err, rows, fields) {
     if (err) throw err;
     var hub = rows[0];
     callback(hub.ip);
   });
+  db.end();
 }
 // Get client IP address from request object
 function getClientAddress(req) {
