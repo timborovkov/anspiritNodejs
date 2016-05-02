@@ -424,7 +424,7 @@ app.post('/listUserHubs', function(req, res){
   //Set headers
   res.setHeader('Content-Type', 'application/json');
   //Create response sample
-  var response = [error: true, details: "", hubs: {}];
+  var response = {error: true, details: "", hubs: {}};
   //Get request
   var user = req.body.user;
   var password = req.body.password;
