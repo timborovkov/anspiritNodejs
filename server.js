@@ -429,7 +429,9 @@ app.get('/listUserHubs', function(req, res){
   var user = req.query.user;
   var password = req.query.password;
   //Check if request is valid
-  if(user !== null && password !== null){
+  console.log("password: " + password);
+  console.log("user: " + user);
+  if(user != null && password != null){
     //Valid request
     //security check
     //Get md5 hash from password
