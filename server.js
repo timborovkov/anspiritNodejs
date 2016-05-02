@@ -328,13 +328,13 @@ app.post('deviceType', function(res, res){
 
 });
 
-//TODO Pair QHub with existing user account, using hub secret token and user login data
-app.post('/hub2user', function(req, res){
+//Pair QHub with existing user account, using hub secret token and user login data
+app.get('/hub2user', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   //Get requested variables
-  var hubToken = req.body.hubToken;
-  var userId = req.body.userId;
-  var userPass = req.body.password;
+  var hubToken = req.query.hubToken;
+  var userId = req.query.userId;
+  var userPass = req.query.password;
 
   //check if variables are not null
   if(hubToken != null && userId != null && userPass != null){
@@ -362,25 +362,25 @@ app.post('/hub2user', function(req, res){
             db.query("UPDATE `hub_list` SET `ownerId`='" + userId + "' WHERE `id`='" + rows[0].id + "'", function(err, userRows, fields) {
               //Owner updated
               //return success
-              res.send(JSON.stringify({"error": false, "type": "success"}))
+              res.send({"error": false, "type": "success"});
             });
           }else{
             //No such hub
             //throw an error
-            res.send(JSON.stringify({"error": true, "type": "Wrong hub token"}))
+            res.send({"error": true, "type": "wrong hub token"});
           }
         });
       }else{
         //User not valid
         //throw an error
-        res.send(JSON.stringify({"error": true, "type": "user login data is not valid"}))
+        res.send({"error": true, "type": "user login data is not valid"});
       }
     });
 
   }else{
     //Invalid request
     //throw an error
-    res.send(JSON.stringify({"erorr": true, "type": "invalid request"}))
+    res.send({"erorr": true, "type": "invalid request"});
   }
 });
 
