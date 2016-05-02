@@ -85,30 +85,46 @@ app.get('/devices', function(req, res){
 app.get('/hubDevices', function(req, res) {
   res.setHeader('Content-Type', 'application/json');
   var user = req.query.user;
-  var secret = req.query.secret;
+  var password = req.query.password; //User's password
   var hubId = req.query.hub;
 
-  //TODO security check
-  //Validate if user id and secret are valid
-  //Validate if hub is owned by the user
+  //Validate if user is valid
+  //Get md5 hash from password
+  password = crypto.createHash('md5').update(password).digest('hex');
+  //Get user from database
+  db.query("SELECT * FROM `users` WHERE `id`=" + user, function(err, rows, fields){
+    if(err !== null){
+      //Throw an error
+      console.error(err);
+      res.send({error:true, type:"ERROR: " + err});
+    };
+    //Check if password is valid
+    if(rows[0].password === password){
+      //User is valid
+      //TODO: Validate if hub is owned by the user
 
-  if(user != null && secret != null && hubId != null){
+      if(user != null && secret != null && hubId != null){
 
-      db.query("SELECT * FROM `device_list` WHERE `hub`="+hubId, function(err, rows, fields) {
-        if (err) throw err;
-        if(rows != null){
-          res.send(JSON.stringify({error:false, type:"done", request: req.query, devices: rows}));
-        }else{
-          res.send(JSON.stringify({error:true, type:"no hub found"}));
-        }
-      });
+          db.query("SELECT * FROM `device_list` WHERE `hub`="+hubId, function(err, rows, fields) {
+            if (err) throw err;
+            if(rows != null){
+              res.send({error:false, type:"done", request: req.query, devices: rows});
+            }else{
+              res.send({error:true, type:"no hub found"});
+            }
+          });
 
 
-     res.send(JSON.stringify(responseToSend));
-   }else{
-     res.send(JSON.stringify({error: true, type: 'bad request'}));
-   }
-});
+         res.send(responseToSend);
+       }else{
+         res.send({error: true, type: 'bad request'});
+       }
+    }else{
+      //Invalid user
+      res.send({error: true, type: 'invalid user'});
+    }
+  });//end of db.query
+});//end of app.get
 
 //Setup new QHUB on server and database
 app.get('/newHub', function(req, res){
@@ -145,7 +161,7 @@ app.get('/newHub', function(req, res){
   }
 });
 
-//Setup new QHUB on server and database
+//Setup new device (lamp, socket etc.) on server and database
 app.get('/newDevice', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var hubSecret = req.query.hubSecret;
@@ -184,6 +200,7 @@ app.get('/newDevice', function(req, res){
 // COLUMN 'task' = {action, parameters};
 // COLUMN 'hub' = INT
 // COLUMN 'done' = true/false
+//Hub will ask for task every 2 seconds from here
 app.get('/tasksForHub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var hubId = req.query.hub;
@@ -208,6 +225,7 @@ app.get('/tasksForHub', function(req, res){
 });
 
 //Send task to hub
+//Must add new task for hub in database
 app.get('/hub', function(req, res){
   res.setHeader('Content-Type', 'application/json');
   var hubId = req.query.hubId;
@@ -216,7 +234,7 @@ app.get('/hub', function(req, res){
   var task = req.query.task;
   //TODO
   //Task contains {action: action, parameters: parameters}
-  //Task must be converted to standart of Api.ai
+  //Task must be converted to standart
 
   if(hubId != null && user != null && secret != null && task != null){
     var responseToSend = {hubId: hubId, user: user};
@@ -328,7 +346,7 @@ app.post('/hub2user', function(req, res){
     db.query("SELECT * FROM `users` WHERE `id`=" + userId, function(err, rows, fields){
       if(err){
         //Throw an error
-        res.send(JSON.stringify({"erorr": true, "type": "failed to contact DB"}))
+        res.send(JSON.stringify({"error": true, "type": "failed to contact DB"}))
       };
       //Check if password is valid
       if(rows[0].password == userPass){
@@ -344,18 +362,18 @@ app.post('/hub2user', function(req, res){
             db.query("UPDATE `hub_list` SET `ownerId`='" + userId + "' WHERE `id`='" + rows[0].id + "'", function(err, userRows, fields) {
               //Owner updated
               //return success
-              res.send(JSON.stringify({"erorr": false, "type": "success"}))
+              res.send(JSON.stringify({"error": false, "type": "success"}))
             });
           }else{
             //No such hub
             //throw an error
-            res.send(JSON.stringify({"erorr": true, "type": "Wrong hub token"}))
+            res.send(JSON.stringify({"error": true, "type": "Wrong hub token"}))
           }
         });
       }else{
         //User not valid
         //throw an error
-        res.send(JSON.stringify({"erorr": true, "type": "user login data is not valid"}))
+        res.send(JSON.stringify({"error": true, "type": "user login data is not valid"}))
       }
     });
 
@@ -400,6 +418,65 @@ app.get('/hub/isPaired', function(req, res){
     res.send({error: true, errorType: "invalid request"});
   }
 });
+
+//Get list of QHubs paired with user account
+app.post('/listUserHubs', function(req, res){
+  //Set headers
+  res.setHeader('Content-Type', 'application/json');
+  //Create response sample
+  var response = [error: true, details: "", hubs: {}];
+  //Get request
+  var user = req.body.user;
+  var password = req.body.password;
+  //Check if request is valid
+  if(user !== null && password !== null){
+    //Valid request
+    //security check
+    //Get md5 hash from password
+    password = crypto.createHash('md5').update(password).digest('hex');
+    //Get user from database
+    db.query("SELECT * FROM `users` WHERE `id`=" + user, function(err, rows, fields){
+      if(err !== null){
+        //Throw an error
+        console.error(err);
+        response.details = "ERROR: " + err;
+        res.send(response);
+      };
+      //Check if password is valid
+      if(rows[0].password === password){
+        //Valid user
+        //Ask from database
+        db.query("SELECT * FROM `hub_list` WHERE `ownerId`=" + user, function(err, rows, fields){
+          if(err === null){
+            if(rows.length > 0){
+              response.error = false;
+              response.details = "search done!";
+              response.hubs = rows;
+              res.send(response);
+            }else{
+              //User doesn't have anything connected
+              response.details = "no hubs been paired yet";
+              response.error = false;
+              res.send(response)
+            }
+          }else{
+            console.error(err);
+            response.details = "ERROR: " + err;
+            res.send(response);
+          }
+        }); //End of db.query
+      }else{
+        //Invalid user
+        response.details = "invalid password or user id";
+        res.send(response)
+      }
+    });
+  }else{
+    //Not valid request
+    response.details = "not valid request";
+    res.send(response)
+  }
+}); //End of app.post
 
 io.on('connection', function(socket){
   console.log('a user connected');
